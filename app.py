@@ -4,45 +4,42 @@ import joblib
 import random
 
 # -----------------------------
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
+
+# -----------------------------
 # LOAD MODEL
 # -----------------------------
 model = joblib.load("credit_risk_model.pkl")
 
-st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
-
 # -----------------------------
-# CHATBOT LOGIC (SMART LOCAL)
+# SMART CHATBOT FUNCTION
 # -----------------------------
 def smart_chatbot(user_input):
     text = user_input.lower()
-
     responses = []
 
     if "risk" in text:
-        responses.append("Risk is calculated using multiple financial factors like income, credit score, and loan burden.")
-
+        responses.append("Risk depends on income, credit score, loan burden, and previous defaults.")
     if "credit score" in text:
-        responses.append("A higher credit score reduces default risk. Scores above 700 are generally considered good.")
-
-    if "loan" in text:
-        responses.append("Loan amount and loan percentage of income are critical. Higher values increase risk.")
-
+        responses.append("Higher credit score means better repayment behavior and lower risk.")
     if "income" in text:
-        responses.append("Higher income generally lowers risk as repayment capacity improves.")
-
+        responses.append("Higher income improves repayment capacity and reduces risk.")
+    if "loan" in text:
+        responses.append("Higher loan amount relative to income increases risk.")
     if "default" in text:
-        responses.append("Previous defaults significantly increase the probability of future default.")
-
-    if "improve" in text or "reduce risk" in text:
-        responses.append("To reduce risk, increase income, reduce loan burden, and maintain a good credit history.")
+        responses.append("Previous defaults strongly increase future risk.")
+    if "reduce risk" in text or "improve" in text:
+        responses.append("Improve credit score, reduce loan burden, and maintain stable income.")
 
     if not responses:
-        responses.append("I can help you understand credit risk, loan factors, and prediction results. Try asking about income, credit score, or default.")
+        responses.append("Ask me about risk, credit score, income, or loan factors.")
 
     return random.choice(responses)
 
 # -----------------------------
-# SIDEBAR INPUT
+# SIDEBAR INPUTS
 # -----------------------------
 st.sidebar.title("💳 Loan Input Panel")
 
@@ -63,95 +60,100 @@ intent = st.sidebar.selectbox("Loan Purpose", ["EDUCATION", "HOMEIMPROVEMENT", "
 prev_default = st.sidebar.selectbox("Previous Default", ["No", "Yes"])
 
 # -----------------------------
-# MAIN TITLE
+# MAIN + CHAT LAYOUT
 # -----------------------------
-st.title("📊 Credit Risk Analytics Dashboard")
-
-# -----------------------------
-# ENCODING
-# -----------------------------
-gender_male = 1 if gender == "Male" else 0
-
-edu_bach = 1 if education == "Bachelor" else 0
-edu_doc = 1 if education == "Doctorate" else 0
-edu_hs = 1 if education == "High School" else 0
-edu_master = 1 if education == "Master" else 0
-
-home_other = 1 if home == "OTHER" else 0
-home_own = 1 if home == "OWN" else 0
-home_rent = 1 if home == "RENT" else 0
-
-intent_edu = 1 if intent == "EDUCATION" else 0
-intent_home = 1 if intent == "HOMEIMPROVEMENT" else 0
-intent_med = 1 if intent == "MEDICAL" else 0
-intent_personal = 1 if intent == "PERSONAL" else 0
-intent_venture = 1 if intent == "VENTURE" else 0
-
-prev_def = 1 if prev_default == "Yes" else 0
-
-input_data = pd.DataFrame([[
-    age, income, emp_exp, loan_amnt, interest,
-    loan_percent_income, cred_hist, credit_score,
-    gender_male,
-    edu_bach, edu_doc, edu_hs, edu_master,
-    home_other, home_own, home_rent,
-    intent_edu, intent_home, intent_med,
-    intent_personal, intent_venture,
-    prev_def
-]])
+col_main, col_chat = st.columns([3, 1])
 
 # -----------------------------
-# PREDICTION
+# MAIN DASHBOARD
 # -----------------------------
-if st.button("🚀 Analyze Risk"):
+with col_main:
 
-    prob = model.predict_proba(input_data)[0][1]
+    st.title("📊 Credit Risk Analytics Dashboard")
 
-    col1, col2, col3 = st.columns(3)
-    col1.metric("💰 Income", income)
-    col2.metric("📈 Credit Score", credit_score)
-    col3.metric("📊 Loan %", loan_percent_income)
+    # Encoding
+    gender_male = 1 if gender == "Male" else 0
 
-    st.divider()
+    edu_bach = 1 if education == "Bachelor" else 0
+    edu_doc = 1 if education == "Doctorate" else 0
+    edu_hs = 1 if education == "High School" else 0
+    edu_master = 1 if education == "Master" else 0
 
-    st.subheader("📊 Risk Result")
+    home_other = 1 if home == "OTHER" else 0
+    home_own = 1 if home == "OWN" else 0
+    home_rent = 1 if home == "RENT" else 0
 
-    if prob < 0.3:
-        st.success(f"🟢 Low Risk ({round(prob*100,2)}%)")
-    elif prob < 0.7:
-        st.warning(f"🟡 Medium Risk ({round(prob*100,2)}%)")
-    else:
-        st.error(f"🔴 High Risk ({round(prob*100,2)}%)")
+    intent_edu = 1 if intent == "EDUCATION" else 0
+    intent_home = 1 if intent == "HOMEIMPROVEMENT" else 0
+    intent_med = 1 if intent == "MEDICAL" else 0
+    intent_personal = 1 if intent == "PERSONAL" else 0
+    intent_venture = 1 if intent == "VENTURE" else 0
 
-    st.progress(prob)
+    prev_def = 1 if prev_default == "Yes" else 0
 
-    st.subheader("📌 Insights")
+    input_data = pd.DataFrame([[
+        age, income, emp_exp, loan_amnt, interest,
+        loan_percent_income, cred_hist, credit_score,
+        gender_male,
+        edu_bach, edu_doc, edu_hs, edu_master,
+        home_other, home_own, home_rent,
+        intent_edu, intent_home, intent_med,
+        intent_personal, intent_venture,
+        prev_def
+    ]])
 
-    if credit_score < 600:
-        st.write("⚠️ Low credit score increases risk")
-    if loan_percent_income > 0.4:
-        st.write("⚠️ High loan burden detected")
-    if prev_def == 1:
-        st.write("🚨 Previous default increases risk")
+    # Button
+    if st.button("🚀 Analyze Risk"):
+
+        prob = model.predict_proba(input_data)[0][1]
+
+        col1, col2, col3 = st.columns(3)
+        col1.metric("💰 Income", income)
+        col2.metric("📈 Credit Score", credit_score)
+        col3.metric("📊 Loan %", loan_percent_income)
+
+        st.divider()
+
+        st.subheader("📊 Risk Result")
+
+        if prob < 0.3:
+            st.success(f"🟢 Low Risk ({round(prob*100,2)}%)")
+        elif prob < 0.7:
+            st.warning(f"🟡 Medium Risk ({round(prob*100,2)}%)")
+        else:
+            st.error(f"🔴 High Risk ({round(prob*100,2)}%)")
+
+        st.progress(prob)
+
+        st.subheader("📌 Insights")
+
+        if credit_score < 600:
+            st.write("⚠️ Low credit score increases risk")
+        if loan_percent_income > 0.4:
+            st.write("⚠️ High loan burden detected")
+        if prev_def == 1:
+            st.write("🚨 Previous default increases risk")
 
 # -----------------------------
-# CHATBOT SECTION
+# CHATBOT PANEL (RIGHT SIDE)
 # -----------------------------
-st.sidebar.markdown("## 🤖 AI Assistant")
+with col_chat:
 
-if "chat_history" not in st.session_state:
-    st.session_state.chat_history = []
+    st.markdown("### 🤖 AI Assistant")
 
-user_msg = st.sidebar.text_input("Ask about credit risk:")
+    if "chat_history" not in st.session_state:
+        st.session_state.chat_history = []
 
-if st.sidebar.button("Send"):
-    if user_msg:
-        reply = smart_chatbot(user_msg)
-        st.session_state.chat_history.append(("You", user_msg))
-        st.session_state.chat_history.append(("Bot", reply))
+    user_msg = st.text_input("Ask something")
 
-for role, msg in st.session_state.chat_history:
-    if role == "You":
-        st.sidebar.markdown(f"🧑 {msg}")
-    else:
-        st.sidebar.markdown(f"🤖 {msg}")
+    if st.button("Send"):
+        if user_msg:
+            reply = smart_chatbot(user_msg)
+            st.session_state.chat_history.append(("You", user_msg))
+            st.session_state.chat_history.append(("Bot", reply))
+
+    for role, msg in st.session_state.chat_history:
+        if role == "You":
+            st.markdown(f"🧑 {msg}")
+        else:
+            st.markdown(f"🤖 {msg}")
