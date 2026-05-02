@@ -1,19 +1,50 @@
 import streamlit as st
 import pandas as pd
 import joblib
+import random
 
 # -----------------------------
-# PAGE CONFIG
+# LOAD MODEL
 # -----------------------------
-st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
-
 model = joblib.load("credit_risk_model.pkl")
 
+st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
+
 # -----------------------------
-# SIDEBAR (PRO LOOK)
+# CHATBOT LOGIC (SMART LOCAL)
 # -----------------------------
-st.sidebar.title("💳 Credit Risk App")
-st.sidebar.write("Enter borrower details")
+def smart_chatbot(user_input):
+    text = user_input.lower()
+
+    responses = []
+
+    if "risk" in text:
+        responses.append("Risk is calculated using multiple financial factors like income, credit score, and loan burden.")
+
+    if "credit score" in text:
+        responses.append("A higher credit score reduces default risk. Scores above 700 are generally considered good.")
+
+    if "loan" in text:
+        responses.append("Loan amount and loan percentage of income are critical. Higher values increase risk.")
+
+    if "income" in text:
+        responses.append("Higher income generally lowers risk as repayment capacity improves.")
+
+    if "default" in text:
+        responses.append("Previous defaults significantly increase the probability of future default.")
+
+    if "improve" in text or "reduce risk" in text:
+        responses.append("To reduce risk, increase income, reduce loan burden, and maintain a good credit history.")
+
+    if not responses:
+        responses.append("I can help you understand credit risk, loan factors, and prediction results. Try asking about income, credit score, or default.")
+
+    return random.choice(responses)
+
+# -----------------------------
+# SIDEBAR INPUT
+# -----------------------------
+st.sidebar.title("💳 Loan Input Panel")
 
 age = st.sidebar.slider("Age", 18, 100, 25)
 income = st.sidebar.number_input("Income", 1000, 1000000, 50000)
@@ -58,9 +89,6 @@ intent_venture = 1 if intent == "VENTURE" else 0
 
 prev_def = 1 if prev_default == "Yes" else 0
 
-# -----------------------------
-# INPUT DATA
-# -----------------------------
 input_data = pd.DataFrame([[
     age, income, emp_exp, loan_amnt, interest,
     loan_percent_income, cred_hist, credit_score,
@@ -73,23 +101,20 @@ input_data = pd.DataFrame([[
 ]])
 
 # -----------------------------
-# PREDICTION BUTTON
+# PREDICTION
 # -----------------------------
 if st.button("🚀 Analyze Risk"):
 
     prob = model.predict_proba(input_data)[0][1]
 
     col1, col2, col3 = st.columns(3)
-
-    # KPI CARDS
-    col1.metric("💰 Income", f"{income}")
-    col2.metric("📈 Credit Score", f"{credit_score}")
-    col3.metric("📊 Loan % Income", f"{loan_percent_income}")
+    col1.metric("💰 Income", income)
+    col2.metric("📈 Credit Score", credit_score)
+    col3.metric("📊 Loan %", loan_percent_income)
 
     st.divider()
 
-    # RISK RESULT
-    st.subheader("📊 Risk Assessment")
+    st.subheader("📊 Risk Result")
 
     if prob < 0.3:
         st.success(f"🟢 Low Risk ({round(prob*100,2)}%)")
@@ -98,10 +123,8 @@ if st.button("🚀 Analyze Risk"):
     else:
         st.error(f"🔴 High Risk ({round(prob*100,2)}%)")
 
-    # PROGRESS BAR (GAUGE FEEL)
     st.progress(prob)
 
-    # EXTRA INSIGHT
     st.subheader("📌 Insights")
 
     if credit_score < 600:
@@ -109,4 +132,26 @@ if st.button("🚀 Analyze Risk"):
     if loan_percent_income > 0.4:
         st.write("⚠️ High loan burden detected")
     if prev_def == 1:
-        st.write("🚨 Previous default strongly impacts risk")
+        st.write("🚨 Previous default increases risk")
+
+# -----------------------------
+# CHATBOT SECTION
+# -----------------------------
+st.sidebar.markdown("## 🤖 AI Assistant")
+
+if "chat_history" not in st.session_state:
+    st.session_state.chat_history = []
+
+user_msg = st.sidebar.text_input("Ask about credit risk:")
+
+if st.sidebar.button("Send"):
+    if user_msg:
+        reply = smart_chatbot(user_msg)
+        st.session_state.chat_history.append(("You", user_msg))
+        st.session_state.chat_history.append(("Bot", reply))
+
+for role, msg in st.session_state.chat_history:
+    if role == "You":
+        st.sidebar.markdown(f"🧑 {msg}")
+    else:
+        st.sidebar.markdown(f"🤖 {msg}")
