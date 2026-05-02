@@ -3,42 +3,84 @@ import pandas as pd
 import joblib
 
 # -----------------------------
-# Load Model
+# PAGE CONFIG
+# -----------------------------
+st.set_page_config(
+    page_title="Credit Risk Prediction",
+    layout="wide",
+    page_icon="💳"
+)
+
+# -----------------------------
+# CUSTOM CSS (UI DESIGN)
+# -----------------------------
+st.markdown("""
+<style>
+.main {
+    background-color: #0E1117;
+}
+h1 {
+    color: #00C9A7;
+}
+.card {
+    background-color: #1c1f26;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0px 0px 10px rgba(0,0,0,0.5);
+}
+</style>
+""", unsafe_allow_html=True)
+
+# -----------------------------
+# LOAD MODEL
 # -----------------------------
 model = joblib.load("credit_risk_model.pkl")
 
 # -----------------------------
-# Page Setup
+# TITLE
 # -----------------------------
-st.set_page_config(page_title="Credit Risk Prediction", layout="centered")
-
 st.title("💳 Credit Risk Prediction System")
-st.write("Enter borrower details to predict loan default risk")
+st.write("Analyze borrower profile and predict default risk")
 
 # -----------------------------
 # INPUT SECTION
 # -----------------------------
-age = st.number_input("Age", 18, 100, 25)
-income = st.number_input("Income", 1000, 1000000, 50000)
-emp_exp = st.number_input("Employment Experience (years)", 0, 40, 2)
-loan_amnt = st.number_input("Loan Amount", 1000, 1000000, 10000)
-interest = st.number_input("Interest Rate (%)", 0.0, 30.0, 12.5)
-loan_percent_income = st.number_input("Loan % of Income", 0.0, 1.0, 0.2)
-cred_hist = st.number_input("Credit History Length", 0, 30, 3)
-credit_score = st.number_input("Credit Score", 300, 900, 650)
+st.markdown("### 🧾 Borrower Details")
 
-gender = st.selectbox("Gender", ["Male", "Female"])
-education = st.selectbox("Education", ["Bachelor", "Doctorate", "High School", "Master"])
-home = st.selectbox("Home Ownership", ["OTHER", "OWN", "RENT"])
-intent = st.selectbox("Loan Purpose", ["EDUCATION", "HOMEIMPROVEMENT", "MEDICAL", "PERSONAL", "VENTURE"])
-prev_default = st.selectbox("Previous Loan Default", ["No", "Yes"])
+col1, col2 = st.columns(2)
+
+with col1:
+    age = st.number_input("Age", 18, 100, 25)
+    income = st.number_input("Income", 1000, 1000000, 50000)
+    emp_exp = st.number_input("Experience (years)", 0, 40, 2)
+    loan_amnt = st.number_input("Loan Amount", 1000, 1000000, 10000)
+
+with col2:
+    interest = st.number_input("Interest Rate (%)", 0.0, 30.0, 12.5)
+    loan_percent_income = st.number_input("Loan % Income", 0.0, 1.0, 0.2)
+    cred_hist = st.number_input("Credit History", 0, 30, 3)
+    credit_score = st.number_input("Credit Score", 300, 900, 650)
+
+st.markdown("### 🏠 Personal Info")
+
+col3, col4 = st.columns(2)
+
+with col3:
+    gender = st.selectbox("Gender", ["Male", "Female"])
+    education = st.selectbox("Education", ["Bachelor", "Doctorate", "High School", "Master"])
+
+with col4:
+    home = st.selectbox("Home Ownership", ["OTHER", "OWN", "RENT"])
+    intent = st.selectbox("Loan Purpose", ["EDUCATION", "HOMEIMPROVEMENT", "MEDICAL", "PERSONAL", "VENTURE"])
+
+prev_default = st.selectbox("Previous Default", ["No", "Yes"])
 
 # -----------------------------
-# PREDICTION
+# BUTTON
 # -----------------------------
-if st.button("Predict Risk"):
+if st.button("🔍 Analyze Risk", use_container_width=True):
 
-    # Encoding (same as training data)
+    # Encoding
     gender_male = 1 if gender == "Male" else 0
 
     edu_bach = 1 if education == "Bachelor" else 0
@@ -58,7 +100,7 @@ if st.button("Predict Risk"):
 
     prev_def = 1 if prev_default == "Yes" else 0
 
-    # Create input dataframe (MUST match training order)
+    # Input Data
     input_data = pd.DataFrame([[
         age, income, emp_exp, loan_amnt, interest,
         loan_percent_income, cred_hist, credit_score,
@@ -73,14 +115,15 @@ if st.button("Predict Risk"):
     # Prediction
     prob = model.predict_proba(input_data)[0][1]
 
-    st.subheader("📊 Prediction Result")
+    st.markdown("## 📊 Risk Result")
 
-    # Risk Levels
     if prob < 0.3:
-        st.success(f"✅ Low Risk ({round(prob*100,2)}%)")
+        st.success(f"🟢 Low Risk — {round(prob*100,2)}%")
     elif prob < 0.7:
-        st.warning(f"⚠️ Medium Risk ({round(prob*100,2)}%)")
+        st.warning(f"🟡 Medium Risk — {round(prob*100,2)}%")
     else:
-        st.error(f"🚨 High Risk ({round(prob*100,2)}%)")
+        st.error(f"🔴 High Risk — {round(prob*100,2)}%")
 
-    st.write("Default Probability:", round(prob*100, 2), "%")
+    st.progress(prob)
+
+    st.write("### 📈 Default Probability:", round(prob*100,2), "%")
