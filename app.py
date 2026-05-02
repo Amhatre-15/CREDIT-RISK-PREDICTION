@@ -1,77 +1,86 @@
 import streamlit as st
-import pickle
 import pandas as pd
+import joblib
 
-# Load the trained model
-model = pickle.load(open("credit_risk_model.pkl", "rb"))
+# -----------------------------
+# Load Model
+# -----------------------------
+model = joblib.load("credit_risk_model.pkl")
 
-st.title("Credit Risk Prediction System")
+# -----------------------------
+# Page Setup
+# -----------------------------
+st.set_page_config(page_title="Credit Risk Prediction", layout="centered")
 
-st.info("Fill the borrower details below. The system will estimate whether the loan is safe or has a high risk of default.")
+st.title("💳 Credit Risk Prediction System")
+st.write("Enter borrower details to predict loan default risk")
 
-# User inputs with placeholder
-age = st.text_input("Customer Age", placeholder="18")
+# -----------------------------
+# INPUT SECTION
+# -----------------------------
+age = st.number_input("Age", 18, 100, 25)
+income = st.number_input("Income", 1000, 1000000, 50000)
+emp_exp = st.number_input("Employment Experience (years)", 0, 40, 2)
+loan_amnt = st.number_input("Loan Amount", 1000, 1000000, 10000)
+interest = st.number_input("Interest Rate (%)", 0.0, 30.0, 12.5)
+loan_percent_income = st.number_input("Loan % of Income", 0.0, 1.0, 0.2)
+cred_hist = st.number_input("Credit History Length", 0, 30, 3)
+credit_score = st.number_input("Credit Score", 300, 900, 650)
 
-income = st.text_input("Customer Income", placeholder="0.00")
+gender = st.selectbox("Gender", ["Male", "Female"])
+education = st.selectbox("Education", ["Bachelor", "Doctorate", "High School", "Master"])
+home = st.selectbox("Home Ownership", ["OTHER", "OWN", "RENT"])
+intent = st.selectbox("Loan Purpose", ["EDUCATION", "HOMEIMPROVEMENT", "MEDICAL", "PERSONAL", "VENTURE"])
+prev_default = st.selectbox("Previous Loan Default", ["No", "Yes"])
 
-employment = st.text_input("Employment Duration (Years at Current Job)", placeholder="0.00")
-
-loan_amount = st.text_input("Loan Amount (₹)", placeholder="0.00")
-
-interest = st.text_input("Loan Interest Rate (%)", placeholder="0.00")
-
-term = st.text_input("Loan Term (Years)", placeholder="0.00")
-
-history = st.selectbox(
-    "Past Loan Default",
-    [0,1],
-    format_func=lambda x: "No previous default" if x==0 else "Has defaulted before"
-)
-
-cred_length = st.text_input("Credit History Length (Years)", placeholder="0.00")
-
-
-# Predict button
+# -----------------------------
+# PREDICTION
+# -----------------------------
 if st.button("Predict Risk"):
 
-    # Convert inputs to numeric
-    age = float(age or 0)
-    income = float(income or 0)
-    employment = float(employment or 0)
-    loan_amount = float(loan_amount or 0)
-    interest = float(interest or 0)
-    term = float(term or 0)
-    cred_length = float(cred_length or 0)
+    # Encoding (same as training data)
+    gender_male = 1 if gender == "Male" else 0
 
-    # Create dataframe
-    sample = pd.DataFrame(columns=model.feature_names_in_)
+    edu_bach = 1 if education == "Bachelor" else 0
+    edu_doc = 1 if education == "Doctorate" else 0
+    edu_hs = 1 if education == "High School" else 0
+    edu_master = 1 if education == "Master" else 0
 
-    sample.loc[0,"customer_age"] = age
-    sample.loc[0,"customer_income"] = income
-    sample.loc[0,"employment_duration"] = employment
-    sample.loc[0,"loan_amnt"] = loan_amount
-    sample.loc[0,"loan_int_rate"] = interest
-    sample.loc[0,"term_years"] = term
-    sample.loc[0,"historical_default"] = history
-    sample.loc[0,"cred_hist_length"] = cred_length
+    home_other = 1 if home == "OTHER" else 0
+    home_own = 1 if home == "OWN" else 0
+    home_rent = 1 if home == "RENT" else 0
 
-    sample = sample.fillna(0)
+    intent_edu = 1 if intent == "EDUCATION" else 0
+    intent_home = 1 if intent == "HOMEIMPROVEMENT" else 0
+    intent_med = 1 if intent == "MEDICAL" else 0
+    intent_personal = 1 if intent == "PERSONAL" else 0
+    intent_venture = 1 if intent == "VENTURE" else 0
 
-    # Get probability of default
-    prediction_prob = model.predict_proba(sample)[0][1]
+    prev_def = 1 if prev_default == "Yes" else 0
 
-    # Show percentage
-    st.write(f"Estimated Default Risk: {prediction_prob*100:.2f}%")
+    # Create input dataframe (MUST match training order)
+    input_data = pd.DataFrame([[
+        age, income, emp_exp, loan_amnt, interest,
+        loan_percent_income, cred_hist, credit_score,
+        gender_male,
+        edu_bach, edu_doc, edu_hs, edu_master,
+        home_other, home_own, home_rent,
+        intent_edu, intent_home, intent_med,
+        intent_personal, intent_venture,
+        prev_def
+    ]])
 
-    # Risk classification
-    if prediction_prob < 0.4:
-        st.error("HIGH RISK of Default")
-        st.warning("The borrower has a high probability of failing to repay the loan.")
+    # Prediction
+    prob = model.predict_proba(input_data)[0][1]
 
-    elif prediction_prob < 0.8:
-        st.warning("MODERATE RISK")
-        st.info("The borrower may face some difficulty in repaying the loan.")
+    st.subheader("📊 Prediction Result")
 
+    # Risk Levels
+    if prob < 0.3:
+        st.success(f"✅ Low Risk ({round(prob*100,2)}%)")
+    elif prob < 0.7:
+        st.warning(f"⚠️ Medium Risk ({round(prob*100,2)}%)")
     else:
-        st.success("LOW RISK (Loan is SAFE)")
-        st.info("This borrower appears financially stable based on the provided financial information.")
+        st.error(f"🚨 High Risk ({round(prob*100,2)}%)")
+
+    st.write("Default Probability:", round(prob*100, 2), "%")
