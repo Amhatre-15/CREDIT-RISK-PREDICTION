@@ -227,7 +227,9 @@ with col_main:
     # ANALYZE BUTTON
     # =====================================================
 
-    if st.button("🚀 Analyze Risk"):
+    analyze = st.button("🚀 Analyze Risk")
+
+    if analyze:
 
         prob = model.predict_proba(input_data)[0][1]
 
@@ -235,11 +237,14 @@ with col_main:
         # TOP METRICS
         # =====================================================
 
-        col1, col2, col3 = st.columns(3)
+        metric1, metric2, metric3 = st.columns(3)
 
-        col1.metric("💰 Income", income)
-        col2.metric("📈 Credit Score", credit_score)
-        col3.metric("📊 Loan %", loan_percent_income)
+        metric1.metric("💰 Income", income)
+        metric2.metric("📈 Credit Score", credit_score)
+        metric3.metric(
+            "📊 Loan %",
+            round(loan_percent_income * 100, 2)
+        )
 
         st.divider()
 
@@ -268,10 +273,18 @@ with col_main:
             )
 
         # =====================================================
-        # RISK PROGRESS BAR
+        # OVERALL RISK METER
         # =====================================================
 
-        st.progress(prob)
+        st.subheader("🎯 Overall Risk Meter")
+
+        st.progress(float(prob))
+
+        st.write(
+            f"### Risk Probability : {round(prob * 100, 2)}%"
+        )
+
+        st.divider()
 
         # =====================================================
         # INSIGHTS
@@ -279,26 +292,47 @@ with col_main:
 
         st.subheader("📌 Insights")
 
+        insights_found = False
+
         if credit_score < 600:
-            st.write("⚠️ Low credit score increases risk")
+
+            st.warning(
+                "⚠️ Low credit score increases financial risk"
+            )
+
+            insights_found = True
 
         if loan_percent_income > 0.4:
-            st.write("⚠️ High loan burden detected")
+
+            st.warning(
+                "⚠️ High loan burden detected"
+            )
+
+            insights_found = True
 
         if prev_def == 1:
-            st.write("🚨 Previous default increases risk")
+
+            st.error(
+                "🚨 Previous default increases risk"
+            )
+
+            insights_found = True
 
         if income < 30000:
-            st.write("💰 Lower income may affect repayment ability")
 
-        if (
-            credit_score >= 600
-            and loan_percent_income <= 0.4
-            and prev_def == 0
-        ):
+            st.info(
+                "💰 Lower income may affect repayment ability"
+            )
+
+            insights_found = True
+
+        if not insights_found:
+
             st.success(
                 "✅ Customer profile appears financially stable"
             )
+
+        st.divider()
 
         # =====================================================
         # VISUAL ANALYTICS
@@ -306,63 +340,61 @@ with col_main:
 
         st.subheader("📊 Visual Risk Analytics")
 
-        chart1, chart2 = st.columns(2)
-
         # =====================================================
         # BAR CHART
         # =====================================================
 
-        with chart1:
+        st.markdown("### 📈 Risk Factors")
 
-            st.markdown("### 📈 Risk Factors")
+        bar_data = pd.DataFrame({
+            "Factor": [
+                "Income",
+                "Credit Score",
+                "Loan %",
+                "Interest Rate"
+            ],
 
-            bar_data = pd.DataFrame({
-                "Factor": [
-                    "Income",
-                    "Credit Score",
-                    "Loan %",
-                    "Interest"
-                ],
+            "Value": [
+                income / 1000,
+                credit_score / 10,
+                loan_percent_income * 100,
+                interest * 10
+            ]
+        })
 
-                "Value": [
-                    income / 1000,
-                    credit_score / 10,
-                    loan_percent_income * 100,
-                    interest * 10
-                ]
-            })
+        st.bar_chart(
+            bar_data.set_index("Factor")
+        )
 
-            st.bar_chart(
-                bar_data.set_index("Factor")
-            )
+        st.divider()
 
         # =====================================================
         # LINE CHART
         # =====================================================
 
-        with chart2:
+        st.markdown("### 📉 Financial Trend")
 
-            st.markdown("### 📉 Financial Trend")
+        line_data = pd.DataFrame({
+            "Stage": [
+                "Experience",
+                "Credit History",
+                "Credit Score",
+                "Loan Burden"
+            ],
 
-            line_data = pd.DataFrame({
-                "Stage": [
-                    "Experience",
-                    "Credit History",
-                    "Credit Score",
-                    "Loan Burden"
-                ],
+            "Value": [
+                emp_exp * 10,
+                cred_hist * 10,
+                credit_score / 10,
+                loan_percent_income * 100
+            ]
+        })
 
-                "Value": [
-                    emp_exp * 10,
-                    cred_hist * 10,
-                    credit_score / 10,
-                    loan_percent_income * 100
-                ]
-            })
+        st.line_chart(
+            line_data.set_index("Stage")
+        )
 
-            st.line_chart(
-                line_data.set_index("Stage")
-            )
+        st.divider()
 
         # =====================================================
         # AREA CHART
@@ -376,18 +408,6 @@ with col_main:
         })
 
         st.area_chart(area_data)
-
-        # =====================================================
-        # OVERALL RISK METER
-        # =====================================================
-
-        st.subheader("🎯 Overall Risk Meter")
-
-        st.progress(prob)
-
-        st.write(
-            f"### Risk Probability : {round(prob * 100, 2)}%"
-        )
 
 # =====================================================
 # CHATBOT PANEL
