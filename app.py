@@ -6,7 +6,10 @@ import random
 # -----------------------------
 # PAGE CONFIG
 # -----------------------------
-st.set_page_config(page_title="Credit Risk Dashboard", layout="wide")
+st.set_page_config(
+    page_title="PRISM - Credit Risk Dashboard",
+    layout="wide"
+)
 
 # -----------------------------
 # LOAD MODEL
@@ -17,24 +20,44 @@ model = joblib.load("credit_risk_model.pkl")
 # SMART CHATBOT FUNCTION
 # -----------------------------
 def smart_chatbot(user_input):
+
     text = user_input.lower()
     responses = []
 
     if "risk" in text:
-        responses.append("Risk depends on income, credit score, loan burden, and previous defaults.")
+        responses.append(
+            "Risk depends on income, credit score, loan burden, and previous defaults."
+        )
+
     if "credit score" in text:
-        responses.append("Higher credit score means better repayment behavior and lower risk.")
+        responses.append(
+            "Higher credit score means better repayment behavior and lower risk."
+        )
+
     if "income" in text:
-        responses.append("Higher income improves repayment capacity and reduces risk.")
+        responses.append(
+            "Higher income improves repayment capacity and reduces risk."
+        )
+
     if "loan" in text:
-        responses.append("Higher loan amount relative to income increases risk.")
+        responses.append(
+            "Higher loan amount relative to income increases risk."
+        )
+
     if "default" in text:
-        responses.append("Previous defaults strongly increase future risk.")
+        responses.append(
+            "Previous defaults strongly increase future risk."
+        )
+
     if "reduce risk" in text or "improve" in text:
-        responses.append("Improve credit score, reduce loan burden, and maintain stable income.")
+        responses.append(
+            "Improve credit score, reduce loan burden, and maintain stable income."
+        )
 
     if not responses:
-        responses.append("Ask me about risk, credit score, income, or loan factors.")
+        responses.append(
+            "Ask me about risk, credit score, income, or loan factors."
+        )
 
     return random.choice(responses)
 
@@ -44,20 +67,86 @@ def smart_chatbot(user_input):
 st.sidebar.title("💳 Loan Input Panel")
 
 age = st.sidebar.slider("Age", 18, 100, 25)
-income = st.sidebar.number_input("Income", 1000, 1000000, 50000)
-emp_exp = st.sidebar.slider("Experience", 0, 40, 2)
-loan_amnt = st.sidebar.number_input("Loan Amount", 1000, 1000000, 10000)
-interest = st.sidebar.slider("Interest Rate", 0.0, 30.0, 12.5)
 
-loan_percent_income = st.sidebar.slider("Loan % Income", 0.0, 1.0, 0.2)
-cred_hist = st.sidebar.slider("Credit History", 0, 30, 3)
-credit_score = st.sidebar.slider("Credit Score", 300, 900, 650)
+income = st.sidebar.number_input(
+    "Income",
+    1000,
+    1000000,
+    50000
+)
 
-gender = st.sidebar.selectbox("Gender", ["Male", "Female"])
-education = st.sidebar.selectbox("Education", ["Bachelor", "Doctorate", "High School", "Master"])
-home = st.sidebar.selectbox("Home Ownership", ["OTHER", "OWN", "RENT"])
-intent = st.sidebar.selectbox("Loan Purpose", ["EDUCATION", "HOMEIMPROVEMENT", "MEDICAL", "PERSONAL", "VENTURE"])
-prev_default = st.sidebar.selectbox("Previous Default", ["No", "Yes"])
+emp_exp = st.sidebar.slider(
+    "Experience",
+    0,
+    40,
+    2
+)
+
+loan_amnt = st.sidebar.number_input(
+    "Loan Amount",
+    1000,
+    1000000,
+    10000
+)
+
+interest = st.sidebar.slider(
+    "Interest Rate",
+    0.0,
+    30.0,
+    12.5
+)
+
+loan_percent_income = st.sidebar.slider(
+    "Loan % Income",
+    0.0,
+    1.0,
+    0.2
+)
+
+cred_hist = st.sidebar.slider(
+    "Credit History",
+    0,
+    30,
+    3
+)
+
+credit_score = st.sidebar.slider(
+    "Credit Score",
+    300,
+    900,
+    650
+)
+
+gender = st.sidebar.selectbox(
+    "Gender",
+    ["Male", "Female"]
+)
+
+education = st.sidebar.selectbox(
+    "Education",
+    ["Bachelor", "Doctorate", "High School", "Master"]
+)
+
+home = st.sidebar.selectbox(
+    "Home Ownership",
+    ["OTHER", "OWN", "RENT"]
+)
+
+intent = st.sidebar.selectbox(
+    "Loan Purpose",
+    [
+        "EDUCATION",
+        "HOMEIMPROVEMENT",
+        "MEDICAL",
+        "PERSONAL",
+        "VENTURE"
+    ]
+)
+
+prev_default = st.sidebar.selectbox(
+    "Previous Default",
+    ["No", "Yes"]
+)
 
 # -----------------------------
 # MAIN + CHAT LAYOUT
@@ -69,9 +158,11 @@ col_main, col_chat = st.columns([3, 1])
 # -----------------------------
 with col_main:
 
-    st.title("📊 Credit Risk Analytics Dashboard")
+    st.title("📊 PRISM - Credit Risk Analytics Dashboard")
 
-    # Encoding
+    # -----------------------------
+    # ENCODING
+    # -----------------------------
     gender_male = 1 if gender == "Male" else 0
 
     edu_bach = 1 if education == "Bachelor" else 0
@@ -91,49 +182,185 @@ with col_main:
 
     prev_def = 1 if prev_default == "Yes" else 0
 
+    # -----------------------------
+    # INPUT DATAFRAME
+    # -----------------------------
     input_data = pd.DataFrame([[
-        age, income, emp_exp, loan_amnt, interest,
-        loan_percent_income, cred_hist, credit_score,
+        age,
+        income,
+        emp_exp,
+        loan_amnt,
+        interest,
+        loan_percent_income,
+        cred_hist,
+        credit_score,
         gender_male,
-        edu_bach, edu_doc, edu_hs, edu_master,
-        home_other, home_own, home_rent,
-        intent_edu, intent_home, intent_med,
-        intent_personal, intent_venture,
+        edu_bach,
+        edu_doc,
+        edu_hs,
+        edu_master,
+        home_other,
+        home_own,
+        home_rent,
+        intent_edu,
+        intent_home,
+        intent_med,
+        intent_personal,
+        intent_venture,
         prev_def
     ]])
 
-    # Button
+    # -----------------------------
+    # ANALYZE BUTTON
+    # -----------------------------
     if st.button("🚀 Analyze Risk"):
 
         prob = model.predict_proba(input_data)[0][1]
 
+        # -----------------------------
+        # TOP METRICS
+        # -----------------------------
         col1, col2, col3 = st.columns(3)
+
         col1.metric("💰 Income", income)
         col2.metric("📈 Credit Score", credit_score)
         col3.metric("📊 Loan %", loan_percent_income)
 
         st.divider()
 
+        # -----------------------------
+        # RISK RESULT
+        # -----------------------------
         st.subheader("📊 Risk Result")
 
         if prob < 0.3:
-            st.success(f"🟢 Low Risk ({round(prob*100,2)}%)")
-        elif prob < 0.7:
-            st.warning(f"🟡 Medium Risk ({round(prob*100,2)}%)")
-        else:
-            st.error(f"🔴 High Risk ({round(prob*100,2)}%)")
 
+            st.success(
+                f"🟢 Low Risk ({round(prob * 100, 2)}%)"
+            )
+
+        elif prob < 0.7:
+
+            st.warning(
+                f"🟡 Medium Risk ({round(prob * 100, 2)}%)"
+            )
+
+        else:
+
+            st.error(
+                f"🔴 High Risk ({round(prob * 100, 2)}%)"
+            )
+
+        # -----------------------------
+        # PROGRESS BAR
+        # -----------------------------
         st.progress(prob)
 
+        # -----------------------------
+        # INSIGHTS
+        # -----------------------------
         st.subheader("📌 Insights")
 
         if credit_score < 600:
             st.write("⚠️ Low credit score increases risk")
+
         if loan_percent_income > 0.4:
             st.write("⚠️ High loan burden detected")
+
         if prev_def == 1:
             st.write("🚨 Previous default increases risk")
 
+        if income < 30000:
+            st.write("💰 Lower income may affect repayment ability")
+
+        # SAFE PROFILE MESSAGE
+        if (
+            credit_score >= 600
+            and loan_percent_income <= 0.4
+            and prev_def == 0
+        ):
+            st.success(
+                "✅ Customer profile appears financially stable"
+            )
+
+        # =====================================================
+        # BAR CHART
+        # =====================================================
+        st.subheader("📊 Risk Factor Visualization")
+
+        chart_data = pd.DataFrame({
+            "Factors": [
+                "Income",
+                "Credit Score",
+                "Loan %",
+                "Interest Rate",
+                "Experience"
+            ],
+
+            "Values": [
+                income / 1000,
+                credit_score,
+                loan_percent_income * 100,
+                interest * 10,
+                emp_exp * 10
+            ]
+        })
+
+        st.bar_chart(
+            chart_data.set_index("Factors")
+        )
+
+        # =====================================================
+        # AREA CHART
+        # =====================================================
+        st.subheader("📈 Risk Distribution")
+
+        risk_data = pd.DataFrame({
+            "Safe": [100 - (prob * 100)],
+            "Risk": [prob * 100]
+        })
+
+        st.area_chart(risk_data)
+
+        # =====================================================
+        # LINE CHART
+        # =====================================================
+        st.subheader("📉 Financial Trend Analysis")
+
+        line_data = pd.DataFrame({
+            "Metrics": [
+                "Income",
+                "Credit Score",
+                "Experience",
+                "Interest"
+            ],
+
+            "Values": [
+                income / 1000,
+                credit_score / 10,
+                emp_exp * 10,
+                interest * 10
+            ]
+        })
+
+        st.line_chart(
+            line_data.set_index("Metrics")
+        )
+
+        # =====================================================
+        # RISK METER
+        # =====================================================
+        st.subheader("🎯 Overall Risk Meter")
+
+        st.progress(prob)
+
+        st.write(
+            f"### Risk Probability : {round(prob * 100, 2)}%"
+        )
+
+# -----------------------------
+# CHATBOT PANEL
+# -----------------------------
 with col_chat:
 
     st.markdown("### 🤖 AI Assistant")
@@ -144,13 +371,26 @@ with col_chat:
     user_msg = st.text_input("Ask something")
 
     if st.button("Send"):
-        if user_msg:
-            reply = smart_chatbot(user_msg)
-            st.session_state.chat_history.append(("You", user_msg))
-            st.session_state.chat_history.append(("Bot", reply))
 
+        if user_msg:
+
+            reply = smart_chatbot(user_msg)
+
+            st.session_state.chat_history.append(
+                ("You", user_msg)
+            )
+
+            st.session_state.chat_history.append(
+                ("Bot", reply)
+            )
+
+    # -----------------------------
+    # DISPLAY CHAT
+    # -----------------------------
     for role, msg in st.session_state.chat_history:
+
         if role == "You":
             st.markdown(f"🧑 {msg}")
+
         else:
             st.markdown(f"🤖 {msg}")
