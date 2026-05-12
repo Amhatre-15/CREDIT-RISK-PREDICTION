@@ -134,9 +134,6 @@ with col_main:
         if prev_def == 1:
             st.write("🚨 Previous default increases risk")
 
-# -----------------------------
-# CHATBOT PANEL (RIGHT SIDE)
-# -----------------------------
 with col_chat:
 
     st.markdown("### 🤖 AI Assistant")
