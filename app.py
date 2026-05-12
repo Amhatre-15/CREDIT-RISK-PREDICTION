@@ -2,7 +2,6 @@ import streamlit as st
 import pandas as pd
 import joblib
 import random
-import plotly.express as px
 
 # =====================================================
 # PAGE CONFIG
@@ -268,6 +267,10 @@ with col_main:
                 f"🔴 High Risk ({round(prob * 100, 2)}%)"
             )
 
+        # =====================================================
+        # RISK PROGRESS BAR
+        # =====================================================
+
         st.progress(prob)
 
         # =====================================================
@@ -298,114 +301,84 @@ with col_main:
             )
 
         # =====================================================
-        # VISUAL ANALYTICS DASHBOARD
+        # VISUAL ANALYTICS
         # =====================================================
 
         st.subheader("📊 Visual Risk Analytics")
 
-        graph1, graph2 = st.columns(2)
+        chart1, chart2 = st.columns(2)
 
         # =====================================================
         # BAR CHART
         # =====================================================
 
-        with graph1:
+        with chart1:
 
-            chart_data = pd.DataFrame({
-                "Factors": [
+            st.markdown("### 📈 Risk Factors")
+
+            bar_data = pd.DataFrame({
+                "Factor": [
                     "Income",
                     "Credit Score",
                     "Loan %",
-                    "Interest Rate",
-                    "Experience"
+                    "Interest"
                 ],
 
-                "Values": [
-                    income / 1000,
-                    credit_score,
-                    loan_percent_income * 100,
-                    interest * 10,
-                    emp_exp * 10
-                ]
-            })
-
-            fig_bar = px.bar(
-                chart_data,
-                x="Factors",
-                y="Values",
-                text="Values",
-                title="Risk Factors"
-            )
-
-            st.plotly_chart(
-                fig_bar,
-                use_container_width=True
-            )
-
-        # =====================================================
-        # PIE CHART
-        # =====================================================
-
-        with graph2:
-
-            pie_data = pd.DataFrame({
-                "Category": ["Safe", "Risk"],
-
                 "Value": [
-                    100 - (prob * 100),
-                    prob * 100
+                    income / 1000,
+                    credit_score / 10,
+                    loan_percent_income * 100,
+                    interest * 10
                 ]
             })
 
-            fig_pie = px.pie(
-                pie_data,
-                names="Category",
-                values="Value",
-                title="Risk Distribution"
-            )
-
-            st.plotly_chart(
-                fig_pie,
-                use_container_width=True
+            st.bar_chart(
+                bar_data.set_index("Factor")
             )
 
         # =====================================================
         # LINE CHART
         # =====================================================
 
-        st.subheader("📉 Financial Trend Analysis")
+        with chart2:
 
-        line_data = pd.DataFrame({
-            "Metrics": [
-                "Income",
-                "Credit Score",
-                "Experience",
-                "Interest"
-            ],
+            st.markdown("### 📉 Financial Trend")
 
-            "Values": [
-                income / 1000,
-                credit_score / 10,
-                emp_exp * 10,
-                interest * 10
-            ]
-        })
+            line_data = pd.DataFrame({
+                "Stage": [
+                    "Experience",
+                    "Credit History",
+                    "Credit Score",
+                    "Loan Burden"
+                ],
 
-        fig_line = px.line(
-            line_data,
-            x="Metrics",
-            y="Values",
-            markers=True,
-            title="Financial Trend Analysis"
-        )
+                "Value": [
+                    emp_exp * 10,
+                    cred_hist * 10,
+                    credit_score / 10,
+                    loan_percent_income * 100
+                ]
+            })
 
-        st.plotly_chart(
-            fig_line,
-            use_container_width=True
-        )
+            st.line_chart(
+                line_data.set_index("Stage")
+            )
 
         # =====================================================
-        # RISK METER
+        # AREA CHART
+        # =====================================================
+
+        st.markdown("### 📊 Risk Distribution")
+
+        area_data = pd.DataFrame({
+            "Safe": [100 - (prob * 100)],
+            "Risk": [prob * 100]
+        })
+
+        st.area_chart(area_data)
+
+        # =====================================================
+        # OVERALL RISK METER
         # =====================================================
 
         st.subheader("🎯 Overall Risk Meter")
