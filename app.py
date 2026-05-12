@@ -308,51 +308,91 @@ with col_main:
 
             st.subheader("📌 Insights")
 
-            st.info(
-                "The dashboard analyzes customer financial stability using credit behavior, loan burden, and repayment indicators."
-            )
-
-            insights = []
-
-            if credit_score < 600:
-
-                insights.append(
-                    "⚠️ Low credit score increases financial risk"
-                )
-
-            if loan_percent_income > 0.4:
-
-                insights.append(
-                    "⚠️ High loan burden detected"
-                )
-
-            if prev_def == 1:
-
-                insights.append(
-                    "🚨 Previous default history detected"
-                )
-
-            if income < 30000:
-
-                insights.append(
-                    "💰 Lower income may affect repayment ability"
-                )
-
             # =====================================================
-            # SHOW INSIGHTS
+            # DYNAMIC OVERALL INSIGHT
             # =====================================================
 
-            if len(insights) == 0:
+            if prob < 0.3:
 
                 st.success(
-                    "✅ Customer profile appears financially stable"
+                    "✅ Customer profile appears financially stable with low repayment risk."
+                )
+
+            elif prob < 0.7:
+
+                st.warning(
+                    "⚠️ Customer profile shows moderate financial risk. Loan approval should be reviewed carefully."
                 )
 
             else:
 
-                for item in insights:
+                st.error(
+                    "🚨 Customer profile shows high financial risk with strong chances of repayment issues."
+                )
 
-                    st.write(item)
+            # =====================================================
+            # FACTOR BASED INSIGHTS
+            # =====================================================
+
+            if credit_score < 600:
+
+                st.warning(
+                    "⚠️ Low credit score negatively impacts loan reliability."
+                )
+
+            else:
+
+                st.success(
+                    "✅ Good credit score improves repayment trust."
+                )
+
+            # -----------------------------------------------------
+
+            if loan_percent_income > 0.4:
+
+                st.warning(
+                    "⚠️ High loan burden detected compared to customer income."
+                )
+
+            else:
+
+                st.success(
+                    "✅ Loan burden is within manageable range."
+                )
+
+            # -----------------------------------------------------
+
+            if prev_def == 1:
+
+                st.error(
+                    "🚨 Previous default history increases future financial risk."
+                )
+
+            else:
+
+                st.success(
+                    "✅ No previous default history found."
+                )
+
+            # -----------------------------------------------------
+
+            if income < 30000:
+
+                st.warning(
+                    "⚠️ Lower income may reduce repayment capability."
+                )
+
+            elif income > 70000:
+
+                st.success(
+                    "✅ Strong income level supports repayment stability."
+                )
+
+            else:
+
+                st.info(
+                    "ℹ️ Moderate income level detected."
+                )
 
             st.divider()
 
