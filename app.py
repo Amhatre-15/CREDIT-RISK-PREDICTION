@@ -4,22 +4,25 @@ import joblib
 import random
 import plotly.express as px
 
-# -----------------------------
+# =====================================================
 # PAGE CONFIG
-# -----------------------------
+# =====================================================
+
 st.set_page_config(
     page_title="PRISM - Credit Risk Dashboard",
     layout="wide"
 )
 
-# -----------------------------
+# =====================================================
 # LOAD MODEL
-# -----------------------------
+# =====================================================
+
 model = joblib.load("credit_risk_model.pkl")
 
-# -----------------------------
+# =====================================================
 # SMART CHATBOT FUNCTION
-# -----------------------------
+# =====================================================
+
 def smart_chatbot(user_input):
 
     text = user_input.lower()
@@ -62,12 +65,18 @@ def smart_chatbot(user_input):
 
     return random.choice(responses)
 
-# -----------------------------
+# =====================================================
 # SIDEBAR INPUTS
-# -----------------------------
+# =====================================================
+
 st.sidebar.title("💳 Loan Input Panel")
 
-age = st.sidebar.slider("Age", 18, 100, 25)
+age = st.sidebar.slider(
+    "Age",
+    18,
+    100,
+    25
+)
 
 income = st.sidebar.number_input(
     "Income",
@@ -149,21 +158,24 @@ prev_default = st.sidebar.selectbox(
     ["No", "Yes"]
 )
 
-# -----------------------------
+# =====================================================
 # MAIN + CHAT LAYOUT
-# -----------------------------
-col_main, col_chat = st.columns([3, 1])
+# =====================================================
 
-# -----------------------------
+col_main, col_chat = st.columns([4, 1])
+
+# =====================================================
 # MAIN DASHBOARD
-# -----------------------------
+# =====================================================
+
 with col_main:
 
     st.title("📊 PRISM - Credit Risk Analytics Dashboard")
 
-    # -----------------------------
+    # =====================================================
     # ENCODING
-    # -----------------------------
+    # =====================================================
+
     gender_male = 1 if gender == "Male" else 0
 
     edu_bach = 1 if education == "Bachelor" else 0
@@ -183,9 +195,10 @@ with col_main:
 
     prev_def = 1 if prev_default == "Yes" else 0
 
-    # -----------------------------
+    # =====================================================
     # INPUT DATAFRAME
-    # -----------------------------
+    # =====================================================
+
     input_data = pd.DataFrame([[
         age,
         income,
@@ -211,16 +224,18 @@ with col_main:
         prev_def
     ]])
 
-    # -----------------------------
+    # =====================================================
     # ANALYZE BUTTON
-    # -----------------------------
+    # =====================================================
+
     if st.button("🚀 Analyze Risk"):
 
         prob = model.predict_proba(input_data)[0][1]
 
-        # -----------------------------
+        # =====================================================
         # TOP METRICS
-        # -----------------------------
+        # =====================================================
+
         col1, col2, col3 = st.columns(3)
 
         col1.metric("💰 Income", income)
@@ -229,9 +244,10 @@ with col_main:
 
         st.divider()
 
-        # -----------------------------
+        # =====================================================
         # RISK RESULT
-        # -----------------------------
+        # =====================================================
+
         st.subheader("📊 Risk Result")
 
         if prob < 0.3:
@@ -252,14 +268,12 @@ with col_main:
                 f"🔴 High Risk ({round(prob * 100, 2)}%)"
             )
 
-        # -----------------------------
-        # PROGRESS BAR
-        # -----------------------------
         st.progress(prob)
 
-        # -----------------------------
+        # =====================================================
         # INSIGHTS
-        # -----------------------------
+        # =====================================================
+
         st.subheader("📌 Insights")
 
         if credit_score < 600:
@@ -284,68 +298,76 @@ with col_main:
             )
 
         # =====================================================
+        # VISUAL ANALYTICS DASHBOARD
+        # =====================================================
+
+        st.subheader("📊 Visual Risk Analytics")
+
+        graph1, graph2 = st.columns(2)
+
+        # =====================================================
         # BAR CHART
         # =====================================================
 
-        st.subheader("📊 Risk Factor Visualization")
+        with graph1:
 
-        chart_data = pd.DataFrame({
-            "Factors": [
-                "Income",
-                "Credit Score",
-                "Loan %",
-                "Interest Rate",
-                "Experience"
-            ],
+            chart_data = pd.DataFrame({
+                "Factors": [
+                    "Income",
+                    "Credit Score",
+                    "Loan %",
+                    "Interest Rate",
+                    "Experience"
+                ],
 
-            "Values": [
-                income / 1000,
-                credit_score,
-                loan_percent_income * 100,
-                interest * 10,
-                emp_exp * 10
-            ]
-        })
+                "Values": [
+                    income / 1000,
+                    credit_score,
+                    loan_percent_income * 100,
+                    interest * 10,
+                    emp_exp * 10
+                ]
+            })
 
-        fig_bar = px.bar(
-            chart_data,
-            x="Factors",
-            y="Values",
-            title="Risk Factors Overview",
-            text="Values"
-        )
+            fig_bar = px.bar(
+                chart_data,
+                x="Factors",
+                y="Values",
+                text="Values",
+                title="Risk Factors"
+            )
 
-        st.plotly_chart(
-            fig_bar,
-            use_container_width=True
-        )
+            st.plotly_chart(
+                fig_bar,
+                use_container_width=True
+            )
 
         # =====================================================
         # PIE CHART
         # =====================================================
 
-        st.subheader("📈 Risk Distribution")
+        with graph2:
 
-        pie_data = pd.DataFrame({
-            "Category": ["Safe", "Risk"],
+            pie_data = pd.DataFrame({
+                "Category": ["Safe", "Risk"],
 
-            "Value": [
-                100 - (prob * 100),
-                prob * 100
-            ]
-        })
+                "Value": [
+                    100 - (prob * 100),
+                    prob * 100
+                ]
+            })
 
-        fig_pie = px.pie(
-            pie_data,
-            names="Category",
-            values="Value",
-            title="Overall Risk Distribution"
-        )
+            fig_pie = px.pie(
+                pie_data,
+                names="Category",
+                values="Value",
+                title="Risk Distribution"
+            )
 
-        st.plotly_chart(
-            fig_pie,
-            use_container_width=True
-        )
+            st.plotly_chart(
+                fig_pie,
+                use_container_width=True
+            )
 
         # =====================================================
         # LINE CHART
@@ -394,9 +416,10 @@ with col_main:
             f"### Risk Probability : {round(prob * 100, 2)}%"
         )
 
-# -----------------------------
+# =====================================================
 # CHATBOT PANEL
-# -----------------------------
+# =====================================================
+
 with col_chat:
 
     st.markdown("### 🤖 AI Assistant")
@@ -420,9 +443,10 @@ with col_chat:
                 ("Bot", reply)
             )
 
-    # -----------------------------
+    # =====================================================
     # DISPLAY CHAT
-    # -----------------------------
+    # =====================================================
+
     for role, msg in st.session_state.chat_history:
 
         if role == "You":
