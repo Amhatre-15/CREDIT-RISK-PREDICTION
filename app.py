@@ -342,8 +342,6 @@ with col_main:
                     "✅ Good credit score improves repayment trust."
                 )
 
-            # -----------------------------------------------------
-
             if loan_percent_income > 0.4:
 
                 st.warning(
@@ -356,8 +354,6 @@ with col_main:
                     "✅ Loan burden is within manageable range."
                 )
 
-            # -----------------------------------------------------
-
             if prev_def == 1:
 
                 st.error(
@@ -369,8 +365,6 @@ with col_main:
                 st.success(
                     "✅ No previous default history found."
                 )
-
-            # -----------------------------------------------------
 
             if income < 30000:
 
@@ -399,18 +393,51 @@ with col_main:
             st.subheader("📊 Visual Risk Analytics")
 
             # =====================================================
-            # DYNAMIC RISK FACTORS
+            # DYNAMIC RISK CALCULATIONS
             # =====================================================
 
-            income_risk = max(0, 100 - (income / 1000))
+            # Income Risk
+            if income >= 100000:
+                income_risk = 10
+            elif income >= 70000:
+                income_risk = 30
+            elif income >= 40000:
+                income_risk = 55
+            else:
+                income_risk = 85
 
-            credit_risk = max(0, 100 - (credit_score / 9))
+            # Credit Score Risk
+            if credit_score >= 750:
+                credit_risk = 10
+            elif credit_score >= 650:
+                credit_risk = 35
+            elif credit_score >= 550:
+                credit_risk = 65
+            else:
+                credit_risk = 90
 
-            loan_risk = loan_percent_income * 100
+            # Loan Burden Risk
+            if loan_percent_income <= 0.2:
+                loan_risk = 15
+            elif loan_percent_income <= 0.4:
+                loan_risk = 45
+            elif loan_percent_income <= 0.6:
+                loan_risk = 75
+            else:
+                loan_risk = 95
 
-            interest_risk = interest * 3
+            # Interest Rate Risk
+            if interest <= 8:
+                interest_risk = 15
+            elif interest <= 14:
+                interest_risk = 45
+            elif interest <= 20:
+                interest_risk = 75
+            else:
+                interest_risk = 95
 
-            default_risk = 100 if prev_def == 1 else 10
+            # Default Risk
+            default_risk = 95 if prev_def == 1 else 15
 
             # =====================================================
             # BAR CHART
@@ -418,9 +445,9 @@ with col_main:
 
             st.markdown("### 📈 Risk Factor Analysis")
 
-            chart_data = pd.DataFrame({
+            risk_chart = pd.DataFrame({
 
-                "Factors": [
+                "Risk Factors": [
                     "Income Risk",
                     "Credit Risk",
                     "Loan Burden",
@@ -428,7 +455,7 @@ with col_main:
                     "Default Risk"
                 ],
 
-                "Values": [
+                "Risk Score": [
                     income_risk,
                     credit_risk,
                     loan_risk,
@@ -438,36 +465,37 @@ with col_main:
             })
 
             st.bar_chart(
-                chart_data.set_index("Factors")
+                risk_chart.set_index("Risk Factors")
             )
 
             st.divider()
 
             # =====================================================
-            # LINE CHART
+            # FINANCIAL TREND
             # =====================================================
 
             st.markdown("### 📉 Financial Trend")
 
-            trend_data = pd.DataFrame({
+            financial_trend = pd.DataFrame({
 
-                "Stages": [
+                "Financial Metrics": [
                     "Income Stability",
                     "Credit Reliability",
                     "Repayment Capacity",
                     "Overall Risk"
                 ],
 
-                "Values": [
-                    min(income / 1000, 100),
-                    credit_score / 9,
-                    100 - (loan_percent_income * 100),
+                "Score": [
+
+                    100 - income_risk,
+                    100 - credit_risk,
+                    100 - loan_risk,
                     prob * 100
                 ]
             })
 
             st.line_chart(
-                trend_data.set_index("Stages")
+                financial_trend.set_index("Financial Metrics")
             )
 
             st.divider()
@@ -478,22 +506,52 @@ with col_main:
 
             st.markdown("### 📊 Risk Distribution")
 
-            distribution_data = pd.DataFrame({
+            safe_value = round((1 - prob) * 100, 2)
+
+            risk_value = round(prob * 100, 2)
+
+            distribution_chart = pd.DataFrame({
 
                 "Category": [
                     "Safe",
                     "Risk"
                 ],
 
-                "Value": [
-                    100 - (prob * 100),
-                    prob * 100
+                "Percentage": [
+                    safe_value,
+                    risk_value
                 ]
             })
 
             st.bar_chart(
-                distribution_data.set_index("Category")
+                distribution_chart.set_index("Category")
             )
+
+            st.divider()
+
+            # =====================================================
+            # FINAL RISK SUMMARY
+            # =====================================================
+
+            st.markdown("### 🎯 Final AI Risk Summary")
+
+            if prob < 0.3:
+
+                st.success(
+                    "AI Model predicts LOW credit default probability."
+                )
+
+            elif prob < 0.7:
+
+                st.warning(
+                    "AI Model predicts MODERATE repayment risk."
+                )
+
+            else:
+
+                st.error(
+                    "AI Model predicts HIGH credit default probability."
+                )
 
         except Exception as e:
 
