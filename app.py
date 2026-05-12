@@ -308,10 +308,6 @@ with col_main:
 
             st.subheader("📌 Insights")
 
-            # =====================================================
-            # DYNAMIC OVERALL INSIGHT
-            # =====================================================
-
             if prob < 0.3:
 
                 st.success(
@@ -403,6 +399,20 @@ with col_main:
             st.subheader("📊 Visual Risk Analytics")
 
             # =====================================================
+            # DYNAMIC RISK FACTORS
+            # =====================================================
+
+            income_risk = max(0, 100 - (income / 1000))
+
+            credit_risk = max(0, 100 - (credit_score / 9))
+
+            loan_risk = loan_percent_income * 100
+
+            interest_risk = interest * 3
+
+            default_risk = 100 if prev_def == 1 else 10
+
+            # =====================================================
             # BAR CHART
             # =====================================================
 
@@ -411,19 +421,19 @@ with col_main:
             chart_data = pd.DataFrame({
 
                 "Factors": [
-                    "Income",
-                    "Credit Score",
-                    "Loan %",
-                    "Interest Rate",
-                    "Experience"
+                    "Income Risk",
+                    "Credit Risk",
+                    "Loan Burden",
+                    "Interest Risk",
+                    "Default Risk"
                 ],
 
                 "Values": [
-                    income / 1000,
-                    credit_score / 10,
-                    loan_percent_income * 100,
-                    interest * 10,
-                    emp_exp * 10
+                    income_risk,
+                    credit_risk,
+                    loan_risk,
+                    interest_risk,
+                    default_risk
                 ]
             })
 
@@ -442,17 +452,17 @@ with col_main:
             trend_data = pd.DataFrame({
 
                 "Stages": [
-                    "Experience",
-                    "Credit History",
-                    "Credit Score",
-                    "Loan Burden"
+                    "Income Stability",
+                    "Credit Reliability",
+                    "Repayment Capacity",
+                    "Overall Risk"
                 ],
 
                 "Values": [
-                    emp_exp * 10,
-                    cred_hist * 10,
-                    credit_score / 10,
-                    loan_percent_income * 100
+                    min(income / 1000, 100),
+                    credit_score / 9,
+                    100 - (loan_percent_income * 100),
+                    prob * 100
                 ]
             })
 
