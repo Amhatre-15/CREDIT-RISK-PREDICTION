@@ -157,3 +157,10 @@ Use larger financial datasets.
 Test multiple machine learning models.  
 Deploy the application online.  
 Add advanced credit scoring features.
+
+# Members
+Atharva Mhatre
+Niharika Pandey
+Laxi Patel
+Shubh Patel
+Dhruv Patel
